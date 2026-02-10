@@ -1,11 +1,11 @@
 {
-  "name": "Appelec",
-  "short_name": "Appelec",
+  "name": "APPELEC",
+  "short_name": "APPELEC",
   "description": "Calcul rapide : Puissance, Courant, Section, Disjoncteur",
-  "start_url": "/",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
-  "theme_color": "#ffb347",
+  "theme_color": "#4da3ff",
   "orientation": "portrait",
   "icons": [
     {
