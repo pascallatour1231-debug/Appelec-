@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appelec - Calcul Électrique</title>
+  
+  <!-- PWA Configuration -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffb347">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Appelec">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #151515;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --text-dim: #888;
+      --accent: #ffb347;
+      --accent-dim: #8b5a2b;
+      --success: #4ade80;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-top: 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--accent) 0%, #ffd700 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--accent-dim);
+    }
+
+    .input-group {
+      margin-bottom: 24px;
+    }
+
+    .input-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 18px;
+      font-family: 'DM Mono', monospace;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 179, 71, 0.1);
+    }
+
+    input::placeholder {
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .unit-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .unit-btn {
+      flex: 1;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .unit-btn:hover {
+      border-color: var(--accent-dim);
+      color: var(--text);
+    }
+
+    .unit-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+      font-weight: 500;
+    }
+
+    .results {
+      background: linear-gradient(135deg, rgba(255, 179, 71, 0.05) 0%, rgba(255, 215, 0, 0.05) 100%);
+      border: 1px solid var(--accent-dim);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-top: 24px;
+      animation: slideIn 0.4s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-item {
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255, 179, 71, 0.1);
+    }
+
+    .result-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .result-item:first-child {
+      padding-top: 0;
+    }
+
+    .result-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+
+    .result-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .result-unit {
+      font-size: 18px;
+      color: var(--text-dim);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+
+    .result-detail {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 4px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .warning {
+      background: rgba(255, 179, 71, 0.1);
+      border-left: 3px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+
+    .install-prompt {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--accent) 0%, #ffd700 100%);
+      color: var(--bg);
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 4px 20px rgba(255, 179, 71, 0.4);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      display: none;
+    }
+
+    .install-prompt:hover {
+      transform: translateX(-50%) translateY(-2px);
+      box-shadow: 0 6px 25px rgba(255, 179, 71, 0.6);
+    }
+
+    .install-prompt.show {
+      display: block;
+      animation: slideUp 0.4s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 26px;
+      }
+      
+      .result-value {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⚡ Appelec</h1>
+      <div class="subtitle">P → I → Section → DJ</div>
+    </header>
+
+    <div class="card">
+      <div class="input-group">
+        <label>Je connais</label>
+        <div class="unit-selector">
+          <button class="unit-btn active" data-mode="power">La Puissance (P)</button>
+          <button class="unit-btn" data-mode="current">Le Courant (I)</button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Puissance</label>
+        <input type="number" id="power" placeholder="3000" inputmode="decimal">
+        <div class="unit-selector">
+          <button class="unit-btn active" data-unit="w">Watts (W)</button>
+          <button class="unit-btn" data-unit="kw">Kilowatts (kW)</button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Courant (A)</label>
+        <input type="number" id="currentInput" placeholder="16" inputmode="decimal">
+      </div>
+
+      <div class="row">
+        <div class="input-group">
+          <label>Type</label>
+          <select id="phase">
+            <option value="mono">Monophasé</option>
+            <option value="tri">Triphasé</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Tension (V)</label>
+          <select id="voltage">
+            <option value="230">230 V</option>
+            <option value="400">400 V</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="results" id="results" style="display: none;">
+      <div class="result-item">
+        <div class="result-label">Courant</div>
+        <div class="result-value" id="current">—<span class="result-unit">A</span></div>
+        <div class="result-detail" id="currentDetail"></div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-label">Section câble</div>
+        <div class="result-value" id="section">—<span class="result-unit">mm²</span></div>
+        <div class="result-detail" id="sectionDetail"></div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-label">Disjoncteur</div>
+        <div class="result-value" id="breaker">—<span class="result-unit">A</span></div>
+        <div class="result-detail" id="breakerDetail"></div>
+      </div>
+
+      <div class="warning">
+        ⚠️ Valeurs indicatives. Vérifiez les conditions de pose et normes en vigueur.
+      </div>
+    </div>
+
+    <footer>
+      Version simplifiée • Cuivre • cosφ = 0.8
+    </footer>
+  </div>
+
+  <!-- Bouton d'installation PWA -->
+  <button id="installBtn" class="install-prompt">
+    📲 Installer l'application
+  </button>
+
+  <script>
+    // Tables de référence
+    const CABLE_CAPACITY = [
+      { section: 1.5, maxI: 15.5 },
+      { section: 2.5, maxI: 21 },
+      { section: 4, maxI: 28 },
+      { section: 6, maxI: 36 },
+      { section: 10, maxI: 50 },
+      { section: 16, maxI: 68 },
+      { section: 25, maxI: 89 },
+      { section: 35, maxI: 110 },
+      { section: 50, maxI: 134 },
+      { section: 70, maxI: 171 },
+      { section: 95, maxI: 207 },
+      { section: 120, maxI: 239 },
+      { section: 150, maxI: 271 },
+      { section: 185, maxI: 310 },
+      { section: 240, maxI: 364 }
+    ];
+
+    const BREAKER_SIZES = [2, 4, 6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
+
+    let currentUnit = 'w';
+    let calcMode = 'power'; // 'power' ou 'current'
+
+    // Gestion des boutons de mode
+    document.querySelectorAll('.unit-btn[data-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        calcMode = btn.dataset.mode;
+        updateFieldStates();
+        calculate();
+      });
+    });
+
+    // Gestion des boutons d'unité
+    document.querySelectorAll('.unit-btn[data-unit]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentUnit = btn.dataset.unit;
+        calculate();
+      });
+    });
+
+    // Fonction pour griser/activer les champs selon le mode
+    function updateFieldStates() {
+      const powerField = document.getElementById('power');
+      const currentField = document.getElementById('currentInput');
+      
+      if (calcMode === 'power') {
+        powerField.disabled = false;
+        currentField.disabled = true;
+        currentField.style.opacity = '0.5';
+        currentField.style.cursor = 'not-allowed';
+        powerField.style.opacity = '1';
+        powerField.style.cursor = 'text';
+      } else {
+        powerField.disabled = true;
+        currentField.disabled = false;
+        powerField.style.opacity = '0.5';
+        powerField.style.cursor = 'not-allowed';
+        currentField.style.opacity = '1';
+        currentField.style.cursor = 'text';
+      }
+    }
+
+    // Gestion du changement de phase
+    document.getElementById('phase').addEventListener('change', (e) => {
+      const voltage = document.getElementById('voltage');
+      if (e.target.value === 'tri') {
+        voltage.value = '400';
+      } else {
+        voltage.value = '230';
+      }
+      calculate();
+    });
+
+    // Calcul automatique
+    ['power', 'currentInput', 'phase', 'voltage'].forEach(id => {
+      document.getElementById(id).addEventListener('input', calculate);
+      document.getElementById(id).addEventListener('change', calculate);
+    });
+
+    function calculate() {
+      const phase = document.getElementById('phase').value;
+      const voltage = parseFloat(document.getElementById('voltage').value);
+      const cos = 0.8;
+
+      let current, powerW;
+
+      if (calcMode === 'power') {
+        // Mode : Je connais la Puissance → Calculer le Courant
+        const powerInput = parseFloat(document.getElementById('power').value);
+        
+        if (!powerInput || !voltage) {
+          document.getElementById('results').style.display = 'none';
+          return;
+        }
+
+        // Conversion en Watts si nécessaire
+        powerW = currentUnit === 'kw' ? powerInput * 1000 : powerInput;
+
+        // Calcul du courant
+        if (phase === 'mono') {
+          current = powerW / (voltage * cos);
+        } else {
+          current = powerW / (Math.sqrt(3) * voltage * cos);
+        }
+
+        // Mettre à jour le champ courant (en lecture seule)
+        document.getElementById('currentInput').value = current.toFixed(1);
+
+      } else {
+        // Mode : Je connais le Courant → Calculer la Puissance
+        current = parseFloat(document.getElementById('currentInput').value);
+        
+        if (!current || !voltage) {
+          document.getElementById('results').style.display = 'none';
+          return;
+        }
+
+        // Calcul de la puissance
+        if (phase === 'mono') {
+          powerW = voltage * current * cos;
+        } else {
+          powerW = Math.sqrt(3) * voltage * current * cos;
+        }
+
+        // Mettre à jour le champ puissance (en lecture seule)
+        const displayPower = currentUnit === 'kw' ? powerW / 1000 : powerW;
+        document.getElementById('power').value = displayPower.toFixed(currentUnit === 'kw' ? 2 : 0);
+      }
+
+      // Section de câble (avec marge de sécurité)
+      const requiredCapacity = current * 1.25; // Marge de 25%
+      const cable = CABLE_CAPACITY.find(c => c.maxI >= requiredCapacity);
+      
+      // Disjoncteur (coefficient 1.25 pour marge)
+      const breakerTarget = current * 1.25;
+      const breaker = BREAKER_SIZES.find(b => b >= breakerTarget);
+
+      // Affichage des résultats
+      document.getElementById('current').innerHTML = 
+        `${current.toFixed(1)}<span class="result-unit">A</span>`;
+      document.getElementById('currentDetail').textContent = 
+        `${powerW.toLocaleString('fr-FR')} W • ${voltage} V • ${phase === 'mono' ? 'Mono' : 'Tri'}`;
+
+      if (cable) {
+        document.getElementById('section').innerHTML = 
+          `${cable.section}<span class="result-unit">mm²</span>`;
+        document.getElementById('sectionDetail').textContent = 
+          `Cuivre • Capacité max ${cable.maxI} A (marge 25%)`;
+      } else {
+        document.getElementById('section').innerHTML = 
+          `>240<span class="result-unit">mm²</span>`;
+        document.getElementById('sectionDetail').textContent = 
+          `Intensité trop élevée pour les sections standard`;
+      }
+
+      if (breaker) {
+        document.getElementById('breaker').innerHTML = 
+          `${breaker}<span class="result-unit">A</span>`;
+        document.getElementById('breakerDetail').textContent = 
+          `Calibre normalisé (marge de sécurité incluse)`;
+      } else {
+        document.getElementById('breaker').innerHTML = 
+          `>125<span class="result-unit">A</span>`;
+        document.getElementById('breakerDetail').textContent = 
+          `Contactez un professionnel pour cette puissance`;
+      }
+
+      document.getElementById('results').style.display = 'block';
+    }
+
+    // Calcul initial si des valeurs par défaut
+    updateFieldStates();
+    calculate();
+
+    // ========== PWA Installation ==========
+    
+    // Enregistrement du service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(registration => console.log('Service Worker enregistré'))
+          .catch(err => console.log('Erreur Service Worker:', err));
+      });
+    }
+
+    // Gestion du bouton d'installation
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.classList.add('show');
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('Application installée');
+      }
+      
+      deferredPrompt = null;
+      installBtn.classList.remove('show');
+    });
+
+    // Cacher le bouton si déjà installé
+    window.addEventListener('appinstalled', () => {
+      installBtn.classList.remove('show');
+      console.log('Application installée avec succès');
+    });
+  </script>
+</body>
+</html>
