@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>APPELEC - Calcul Électrique</title>
-  
+
   <!-- PWA Configuration -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#ffb347">
+  <meta name="theme-color" content="#4da3ff">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,16 +15,13 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
       --bg: #0a0a0a;
@@ -33,7 +30,7 @@
       --text: #e8e8e8;
       --text-dim: #888;
       --accent: #4da3ff;
-      --accent-dim: #4da3ff;
+      --accent-dim: rgba(77, 163, 255, 0.55);
       --success: #4adebe;
       --radius: 12px;
     }
@@ -72,7 +69,7 @@
       font-weight: 700;
       letter-spacing: -0.02em;
       margin-bottom: 8px;
-      background: linear-gradient(135deg, var(--accent) 0%, #4da3ff 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, rgba(77, 163, 255, 0.7) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -94,17 +91,10 @@
       transition: all 0.3s ease;
     }
 
-    .card:hover {
-      border-color: var(--accent-dim);
-    }
+    .card:hover { border-color: var(--accent-dim); }
 
-    .input-group {
-      margin-bottom: 24px;
-    }
-
-    .input-group:last-child {
-      margin-bottom: 0;
-    }
+    .input-group { margin-bottom: 24px; }
+    .input-group:last-child { margin-bottom: 0; }
 
     label {
       display: block;
@@ -131,7 +121,7 @@
 
     input:focus, select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(255, 179, 71, 0.1);
+      box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.18);
     }
 
     input::placeholder {
@@ -177,7 +167,7 @@
     }
 
     .results {
-      background: linear-gradient(135deg, rgba(255, 179, 71, 0.05) 0%, rgba(255, 215, 0, 0.05) 100%);
+      background: linear-gradient(135deg, rgba(77, 163, 255, 0.06) 0%, rgba(77, 163, 255, 0.02) 100%);
       border: 1px solid var(--accent-dim);
       border-radius: var(--radius);
       padding: 24px;
@@ -192,7 +182,7 @@
 
     .result-item {
       padding: 16px 0;
-      border-bottom: 1px solid rgba(255, 179, 71, 0.1);
+      border-bottom: 1px solid rgba(77, 163, 255, 0.10);
     }
 
     .result-item:last-child {
@@ -200,9 +190,7 @@
       padding-bottom: 0;
     }
 
-    .result-item:first-child {
-      padding-top: 0;
-    }
+    .result-item:first-child { padding-top: 0; }
 
     .result-label {
       font-size: 12px;
@@ -236,7 +224,7 @@
     }
 
     .warning {
-      background: rgba(255, 179, 71, 0.1);
+      background: rgba(77, 163, 255, 0.10);
       border-left: 3px solid var(--accent);
       padding: 12px 16px;
       border-radius: 6px;
@@ -260,13 +248,13 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(135deg, var(--accent) 0%, #4da3ff 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, rgba(77, 163, 255, 0.8) 100%);
       color: var(--bg);
       padding: 12px 24px;
       border-radius: 999px;
       font-weight: 600;
       font-size: 14px;
-      box-shadow: 0 4px 20px rgba(255, 179, 71, 0.4);
+      box-shadow: 0 4px 20px rgba(77, 163, 255, 0.35);
       cursor: pointer;
       transition: all 0.3s ease;
       z-index: 1000;
@@ -275,7 +263,7 @@
 
     .install-prompt:hover {
       transform: translateX(-50%) translateY(-2px);
-      box-shadow: 0 6px 25px rgba(255, 179, 71, 0.6);
+      box-shadow: 0 6px 25px rgba(77, 163, 255, 0.50);
     }
 
     .install-prompt.show {
@@ -289,20 +277,13 @@
     }
 
     @media (max-width: 480px) {
-      .row {
-        grid-template-columns: 1fr;
-      }
-      
-      h1 {
-        font-size: 26px;
-      }
-      
-      .result-value {
-        font-size: 24px;
-      }
+      .row { grid-template-columns: 1fr; }
+      h1 { font-size: 26px; }
+      .result-value { font-size: 24px; }
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <header>
@@ -437,7 +418,7 @@
     function updateFieldStates() {
       const powerField = document.getElementById('power');
       const currentField = document.getElementById('currentInput');
-      
+
       if (calcMode === 'power') {
         powerField.disabled = false;
         currentField.disabled = true;
@@ -455,7 +436,7 @@
       }
     }
 
-    // Gestion du changement de phase
+    // Gestion du changement de phase (garde votre logique existante)
     document.getElementById('phase').addEventListener('change', (e) => {
       const voltage = document.getElementById('voltage');
       if (e.target.value === 'tri') {
@@ -482,103 +463,117 @@
       if (calcMode === 'power') {
         // Mode : Je connais la Puissance → Calculer le Courant
         const powerInput = parseFloat(document.getElementById('power').value);
-        
+
         if (!powerInput || !voltage) {
           document.getElementById('results').style.display = 'none';
           return;
         }
 
-        // Conversion en Watts si nécessaire
         powerW = currentUnit === 'kw' ? powerInput * 1000 : powerInput;
 
-        // Calcul du courant
         if (phase === 'mono') {
           current = powerW / (voltage * cos);
         } else {
           current = powerW / (Math.sqrt(3) * voltage * cos);
         }
 
-        // Mettre à jour le champ courant (en lecture seule)
         document.getElementById('currentInput').value = current.toFixed(1);
 
       } else {
         // Mode : Je connais le Courant → Calculer la Puissance
         current = parseFloat(document.getElementById('currentInput').value);
-        
+
         if (!current || !voltage) {
           document.getElementById('results').style.display = 'none';
           return;
         }
 
-        // Calcul de la puissance
         if (phase === 'mono') {
           powerW = voltage * current * cos;
         } else {
           powerW = Math.sqrt(3) * voltage * current * cos;
         }
 
-        // Mettre à jour le champ puissance (en lecture seule)
         const displayPower = currentUnit === 'kw' ? powerW / 1000 : powerW;
         document.getElementById('power').value = displayPower.toFixed(currentUnit === 'kw' ? 2 : 0);
       }
 
-      // Section de câble (avec marge de sécurité)
-      const requiredCapacity = current * 1.25; // Marge de 25%
-      const cable = CABLE_CAPACITY.find(c => c.maxI >= requiredCapacity);
-      
-      // Disjoncteur (coefficient 1.25 pour marge)
-      const breakerTarget = current * 1.25;
-      const breaker = BREAKER_SIZES.find(b => b >= breakerTarget);
+      // ============================
+      // 1) SECTION (marge 25% sur Ib)
+      // 2) DISJONCTEUR cohérent : Ib ≤ In ≤ Iz
+      // ============================
+      const safetyFactor = 1.25;
+      const Ib = current;
+      const requiredCapacity = Ib * safetyFactor;
+
+      let selectedCable = CABLE_CAPACITY.find(c => c.maxI >= requiredCapacity) || null;
+      let breaker = null;
+
+      if (selectedCable) {
+        // Cherche un calibre normalisé cohérent avec la section (In >= Ib et In <= Iz)
+        breaker = BREAKER_SIZES.find(b => b >= Ib && b <= selectedCable.maxI) || null;
+
+        // Si pas possible, on monte la section jusqu'à trouver une paire (section, DJ) cohérente
+        if (!breaker) {
+          const startIdx = CABLE_CAPACITY.findIndex(c => c.section === selectedCable.section);
+          for (let i = startIdx + 1; i < CABLE_CAPACITY.length; i++) {
+            const candidate = CABLE_CAPACITY[i];
+            const candidateBreaker = BREAKER_SIZES.find(b => b >= Ib && b <= candidate.maxI);
+            if (candidateBreaker) {
+              selectedCable = candidate;
+              breaker = candidateBreaker;
+              break;
+            }
+          }
+        }
+      }
 
       // Affichage des résultats
-      document.getElementById('current').innerHTML = 
+      document.getElementById('current').innerHTML =
         `${current.toFixed(1)}<span class="result-unit">A</span>`;
-      document.getElementById('currentDetail').textContent = 
+      document.getElementById('currentDetail').textContent =
         `${powerW.toLocaleString('fr-FR')} W • ${voltage} V • ${phase === 'mono' ? 'Mono' : 'Tri'}`;
 
-      if (cable) {
-        document.getElementById('section').innerHTML = 
-          `${cable.section}<span class="result-unit">mm²</span>`;
-        document.getElementById('sectionDetail').textContent = 
-          `Cuivre • Capacité max ${cable.maxI} A (marge 25%)`;
+      if (selectedCable) {
+        document.getElementById('section').innerHTML =
+          `${selectedCable.section}<span class="result-unit">mm²</span>`;
+        document.getElementById('sectionDetail').textContent =
+          `Cuivre • Iz ≈ ${selectedCable.maxI} A • section avec marge ${Math.round((safetyFactor - 1) * 100)}%`;
       } else {
-        document.getElementById('section').innerHTML = 
+        document.getElementById('section').innerHTML =
           `>240<span class="result-unit">mm²</span>`;
-        document.getElementById('sectionDetail').textContent = 
+        document.getElementById('sectionDetail').textContent =
           `Intensité trop élevée pour les sections standard`;
       }
 
       if (breaker) {
-        document.getElementById('breaker').innerHTML = 
+        document.getElementById('breaker').innerHTML =
           `${breaker}<span class="result-unit">A</span>`;
-        document.getElementById('breakerDetail').textContent = 
-          `Calibre normalisé (marge de sécurité incluse)`;
+        document.getElementById('breakerDetail').textContent =
+          `Calibre normalisé cohérent avec la section (Ib ≤ In ≤ Iz)`;
       } else {
-        document.getElementById('breaker').innerHTML = 
-          `>125<span class="result-unit">A</span>`;
-        document.getElementById('breakerDetail').textContent = 
-          `Contactez un professionnel pour cette puissance`;
+        document.getElementById('breaker').innerHTML =
+          `—<span class="result-unit">A</span>`;
+        document.getElementById('breakerDetail').textContent =
+          `Aucune paire (section/DJ) cohérente trouvée dans ce modèle simplifié`;
       }
 
       document.getElementById('results').style.display = 'block';
     }
 
-    // Calcul initial si des valeurs par défaut
     updateFieldStates();
     calculate();
 
     // ========== PWA Installation ==========
-    
-    // Enregistrement du service worker
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(registration => console.log('Service Worker enregistré'))
+          .then(() => console.log('Service Worker enregistré'))
           .catch(err => console.log('Erreur Service Worker:', err));
       });
     }
 
-    // Gestion du bouton d'installation
     let deferredPrompt;
     const installBtn = document.getElementById('installBtn');
 
@@ -590,19 +585,18 @@
 
     installBtn.addEventListener('click', async () => {
       if (!deferredPrompt) return;
-      
+
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
+
       if (outcome === 'accepted') {
         console.log('Application installée');
       }
-      
+
       deferredPrompt = null;
       installBtn.classList.remove('show');
     });
 
-    // Cacher le bouton si déjà installé
     window.addEventListener('appinstalled', () => {
       installBtn.classList.remove('show');
       console.log('Application installée avec succès');
