@@ -330,6 +330,12 @@
           </select>
         </div>
       </div>
+
+      <!-- ✅ NOUVEAU : distance -->
+      <div class="input-group" style="margin-top: 24px;">
+        <label>Distance (m)</label>
+        <input type="number" id="distance" placeholder="80" inputmode="decimal">
+      </div>
     </div>
 
     <div class="results" id="results" style="display: none;">
@@ -345,10 +351,24 @@
         <div class="result-detail" id="sectionDetail"></div>
       </div>
 
+      <!-- ✅ NOUVEAU : section mini chute 5% -->
+      <div class="result-item">
+        <div class="result-label">Section min (ΔU 5%)</div>
+        <div class="result-value" id="vdSection">—<span class="result-unit">mm²</span></div>
+        <div class="result-detail" id="vdSectionDetail"></div>
+      </div>
+
       <div class="result-item">
         <div class="result-label">Disjoncteur</div>
         <div class="result-value" id="breaker">—<span class="result-unit">A</span></div>
         <div class="result-detail" id="breakerDetail"></div>
+      </div>
+
+      <!-- ✅ NOUVEAU : longueur max chute 5% -->
+      <div class="result-item">
+        <div class="result-label">Longueur max (ΔU 5%)</div>
+        <div class="result-value" id="maxLength">—<span class="result-unit">m</span></div>
+        <div class="result-detail" id="maxLengthDetail"></div>
       </div>
 
       <div class="warning">
@@ -357,7 +377,7 @@
     </div>
 
     <footer>
-      Version simplifiée • Cuivre • cosφ = 0.8
+      Version simplifiée • Cuivre • cosφ = 0.8 • ΔU = 5%
     </footer>
   </div>
 
@@ -367,31 +387,47 @@
   </button>
 
   <script>
-    // Tables de référence
-    const CABLE_CAPACITY = [
-      { section: 1.5, maxI: 15.5 },
-      { section: 2.5, maxI: 21 },
-      { section: 4, maxI: 28 },
-      { section: 6, maxI: 36 },
-      { section: 10, maxI: 50 },
-      { section: 16, maxI: 68 },
-      { section: 25, maxI: 89 },
-      { section: 35, maxI: 110 },
-      { section: 50, maxI: 134 },
-      { section: 70, maxI: 171 },
-      { section: 95, maxI: 207 },
-      { section: 120, maxI: 239 },
-      { section: 150, maxI: 271 },
-      { section: 185, maxI: 310 },
-      { section: 240, maxI: 364 }
+    // =========================================================
+    // Modèle "général puissance" (électriciens, en connaissance)
+    // - cosφ fixe = 0.8
+    // - 1,5 mm² : 16A max
+    // - 4 mm² : supprimé (donc 25A saute sur 6 mm²)
+    // - Section déterminée par calibre DJ (simplifié FR)
+    // - Chute de tension : 5% (Cuivre, rho 0.0175)
+    // =========================================================
+
+    const VD_PERCENT = 0.05; // chute 5%
+    const RHO_CU = 0.0175;   // Ω·mm²/m (20°C)
+
+    const BREAKER_SIZES = [2, 4, 6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
+
+    // Calibre DJ -> section mini (Cuivre) - simplifié
+    const SECTION_BY_BREAKER = [
+      { breaker: 2,   section: 1.5 },
+      { breaker: 4,   section: 1.5 },
+      { breaker: 6,   section: 1.5 },
+      { breaker: 10,  section: 1.5 },
+      { breaker: 16,  section: 1.5 }, // 16A max sur 1,5
+      { breaker: 20,  section: 2.5 },
+      { breaker: 25,  section: 6 },   // 4 mm² supprimé => saut
+      { breaker: 32,  section: 6 },
+      { breaker: 40,  section: 10 },
+      { breaker: 50,  section: 10 },
+      { breaker: 63,  section: 16 },
+      { breaker: 80,  section: 25 },
+      { breaker: 100, section: 35 },
+      { breaker: 125, section: 50 }
     ];
 
-    const BREAKER_SIZES = [2, 4, 6, 10, 16, 20, 32, 40, 50, 63, 80, 100, 125];
+    // Sections normalisées (sans 4)
+    const SECTIONS = [1.5, 2.5, 6, 10, 16, 25, 35, 50, 70, 95, 120, 150, 185, 240];
+    function nextSectionUp(sMin) {
+      return SECTIONS.find(s => s >= sMin) || null;
+    }
 
     let currentUnit = 'w';
     let calcMode = 'power'; // 'power' ou 'current'
 
-    // Gestion des boutons de mode
     document.querySelectorAll('.unit-btn[data-mode]').forEach(btn => {
       btn.addEventListener('click', () => {
         const parent = btn.parentElement;
@@ -403,7 +439,6 @@
       });
     });
 
-    // Gestion des boutons d'unité
     document.querySelectorAll('.unit-btn[data-unit]').forEach(btn => {
       btn.addEventListener('click', () => {
         const parent = btn.parentElement;
@@ -414,7 +449,6 @@
       });
     });
 
-    // Fonction pour griser/activer les champs selon le mode
     function updateFieldStates() {
       const powerField = document.getElementById('power');
       const currentField = document.getElementById('currentInput');
@@ -436,19 +470,15 @@
       }
     }
 
-    // Gestion du changement de phase (garde votre logique existante)
     document.getElementById('phase').addEventListener('change', (e) => {
       const voltage = document.getElementById('voltage');
-      if (e.target.value === 'tri') {
-        voltage.value = '400';
-      } else {
-        voltage.value = '230';
-      }
+      if (e.target.value === 'tri') voltage.value = '400';
+      else voltage.value = '230';
       calculate();
     });
 
-    // Calcul automatique
-    ['power', 'currentInput', 'phase', 'voltage'].forEach(id => {
+    // ✅ distance ajouté
+    ['power', 'currentInput', 'phase', 'voltage', 'distance'].forEach(id => {
       document.getElementById(id).addEventListener('input', calculate);
       document.getElementById(id).addEventListener('change', calculate);
     });
@@ -461,9 +491,7 @@
       let current, powerW;
 
       if (calcMode === 'power') {
-        // Mode : Je connais la Puissance → Calculer le Courant
         const powerInput = parseFloat(document.getElementById('power').value);
-
         if (!powerInput || !voltage) {
           document.getElementById('results').style.display = 'none';
           return;
@@ -471,91 +499,125 @@
 
         powerW = currentUnit === 'kw' ? powerInput * 1000 : powerInput;
 
-        if (phase === 'mono') {
-          current = powerW / (voltage * cos);
-        } else {
-          current = powerW / (Math.sqrt(3) * voltage * cos);
-        }
+        if (phase === 'mono') current = powerW / (voltage * cos);
+        else current = powerW / (Math.sqrt(3) * voltage * cos);
 
         document.getElementById('currentInput').value = current.toFixed(1);
-
       } else {
-        // Mode : Je connais le Courant → Calculer la Puissance
         current = parseFloat(document.getElementById('currentInput').value);
-
         if (!current || !voltage) {
           document.getElementById('results').style.display = 'none';
           return;
         }
 
-        if (phase === 'mono') {
-          powerW = voltage * current * cos;
-        } else {
-          powerW = Math.sqrt(3) * voltage * current * cos;
-        }
+        if (phase === 'mono') powerW = voltage * current * cos;
+        else powerW = Math.sqrt(3) * voltage * current * cos;
 
         const displayPower = currentUnit === 'kw' ? powerW / 1000 : powerW;
         document.getElementById('power').value = displayPower.toFixed(currentUnit === 'kw' ? 2 : 0);
       }
 
-      // ============================
-      // 1) SECTION (marge 25% sur Ib)
-      // 2) DISJONCTEUR cohérent : Ib ≤ In ≤ Iz
-      // ============================
-      const safetyFactor = 1.25;
-      const Ib = current;
-      const requiredCapacity = Ib * safetyFactor;
+      const Ib = current; // courant d'emploi
 
-      let selectedCable = CABLE_CAPACITY.find(c => c.maxI >= requiredCapacity) || null;
-      let breaker = null;
+      // ===== Disjoncteur : calibre normalisé >= Ib =====
+      const breaker = BREAKER_SIZES.find(b => b >= Ib) || null;
 
-      if (selectedCable) {
-        // Cherche un calibre normalisé cohérent avec la section (In >= Ib et In <= Iz)
-        breaker = BREAKER_SIZES.find(b => b >= Ib && b <= selectedCable.maxI) || null;
+      // ===== Section "DJ -> section mini" =====
+      let sectionDJ = null;
+      if (breaker) {
+        const row = SECTION_BY_BREAKER.find(r => r.breaker === breaker);
+        sectionDJ = row ? row.section : null;
+      }
 
-        // Si pas possible, on monte la section jusqu'à trouver une paire (section, DJ) cohérente
-        if (!breaker) {
-          const startIdx = CABLE_CAPACITY.findIndex(c => c.section === selectedCable.section);
-          for (let i = startIdx + 1; i < CABLE_CAPACITY.length; i++) {
-            const candidate = CABLE_CAPACITY[i];
-            const candidateBreaker = BREAKER_SIZES.find(b => b >= Ib && b <= candidate.maxI);
-            if (candidateBreaker) {
-              selectedCable = candidate;
-              breaker = candidateBreaker;
-              break;
-            }
-          }
+      // ===== Chute de tension : section min pour la distance saisie (ΔU 5%) =====
+      const L = parseFloat(document.getElementById('distance').value); // m
+      const dU = voltage * VD_PERCENT; // V
+
+      let vdSectionMin = null;
+      let vdSectionRounded = null;
+
+      if (L && L > 0 && sectionDJ) {
+        if (phase === 'mono') {
+          vdSectionMin = (2 * RHO_CU * L * Ib) / dU;
+        } else {
+          vdSectionMin = (Math.sqrt(3) * RHO_CU * L * Ib) / dU;
+        }
+        vdSectionRounded = nextSectionUp(vdSectionMin);
+      }
+
+      // ===== Section finale retenue : max(DJ, chute) =====
+      let finalSection = sectionDJ;
+      if (vdSectionRounded) finalSection = Math.max(finalSection, vdSectionRounded);
+
+      // ===== Longueur max (ΔU 5%) à partir de la section finale =====
+      let Lmax = null;
+      if (finalSection && finalSection > 0) {
+        if (phase === 'mono') {
+          Lmax = (dU * finalSection) / (2 * RHO_CU * Ib);
+        } else {
+          Lmax = (dU * finalSection) / (Math.sqrt(3) * RHO_CU * Ib);
         }
       }
 
-      // Affichage des résultats
+      // Affichage courant
       document.getElementById('current').innerHTML =
         `${current.toFixed(1)}<span class="result-unit">A</span>`;
       document.getElementById('currentDetail').textContent =
-        `${powerW.toLocaleString('fr-FR')} W • ${voltage} V • ${phase === 'mono' ? 'Mono' : 'Tri'}`;
+        `${powerW.toLocaleString('fr-FR')} W • ${voltage} V • ${phase === 'mono' ? 'Mono' : 'Tri'} • cosφ 0.8`;
 
-      if (selectedCable) {
+      // Affichage section câble (finale)
+      if (finalSection) {
         document.getElementById('section').innerHTML =
-          `${selectedCable.section}<span class="result-unit">mm²</span>`;
+          `${finalSection}<span class="result-unit">mm²</span>`;
+        const extra = (vdSectionRounded && vdSectionRounded > sectionDJ)
+          ? `Chute 5% impose ${vdSectionRounded} mm²`
+          : `DJ impose ${sectionDJ} mm²`;
         document.getElementById('sectionDetail').textContent =
-          `Cuivre • Iz ≈ ${selectedCable.maxI} A • section avec marge ${Math.round((safetyFactor - 1) * 100)}%`;
+          `Cuivre • règle simplifiée FR • ${extra} • 4 mm² exclu`;
       } else {
         document.getElementById('section').innerHTML =
-          `>240<span class="result-unit">mm²</span>`;
+          `—<span class="result-unit">mm²</span>`;
         document.getElementById('sectionDetail').textContent =
-          `Intensité trop élevée pour les sections standard`;
+          `Section non déterminée`;
       }
 
+      // Affichage section min chute 5%
+      if (vdSectionRounded) {
+        document.getElementById('vdSection').innerHTML =
+          `${vdSectionRounded}<span class="result-unit">mm²</span>`;
+        document.getElementById('vdSectionDetail').textContent =
+          `Distance ${L} m • Smin théorique ${vdSectionMin.toFixed(2)} mm²`;
+      } else {
+        document.getElementById('vdSection').innerHTML =
+          `—<span class="result-unit">mm²</span>`;
+        document.getElementById('vdSectionDetail').textContent =
+          `Entrez une distance pour calculer la chute`;
+      }
+
+      // Affichage disjoncteur
       if (breaker) {
         document.getElementById('breaker').innerHTML =
           `${breaker}<span class="result-unit">A</span>`;
         document.getElementById('breakerDetail').textContent =
-          `Calibre normalisé cohérent avec la section (Ib ≤ In ≤ Iz)`;
+          `Calibre normalisé ≥ Ib (modèle simplifié)`;
       } else {
         document.getElementById('breaker').innerHTML =
-          `—<span class="result-unit">A</span>`;
+          `>125<span class="result-unit">A</span>`;
         document.getElementById('breakerDetail').textContent =
-          `Aucune paire (section/DJ) cohérente trouvée dans ce modèle simplifié`;
+          `Hors table — calcul à traiter au cas par cas`;
+      }
+
+      // Affichage longueur max 5%
+      if (Lmax) {
+        document.getElementById('maxLength').innerHTML =
+          `${Math.floor(Lmax)}<span class="result-unit">m</span>`;
+        document.getElementById('maxLengthDetail').textContent =
+          `Avec section ${finalSection} mm² • ΔU 5%`;
+      } else {
+        document.getElementById('maxLength').innerHTML =
+          `—<span class="result-unit">m</span>`;
+        document.getElementById('maxLengthDetail').textContent =
+          `Section non déterminée`;
       }
 
       document.getElementById('results').style.display = 'block';
@@ -565,7 +627,6 @@
     calculate();
 
     // ========== PWA Installation ==========
-
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
@@ -585,21 +646,14 @@
 
     installBtn.addEventListener('click', async () => {
       if (!deferredPrompt) return;
-
       deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-
-      if (outcome === 'accepted') {
-        console.log('Application installée');
-      }
-
+      await deferredPrompt.userChoice;
       deferredPrompt = null;
       installBtn.classList.remove('show');
     });
 
     window.addEventListener('appinstalled', () => {
       installBtn.classList.remove('show');
-      console.log('Application installée avec succès');
     });
   </script>
 </body>
